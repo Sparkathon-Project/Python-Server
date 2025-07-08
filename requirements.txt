@@ -1,0 +1,11 @@
+torch
+torchvision
+segment-anything
+numpy
+Pillow
+transformers
+faiss-cpu
+psycopg2-binary
+Flask
+Flask-CORS
+python-dotenv
