@@ -1,4 +1,4 @@
-def find_similar_embeddings(faiss_index, query_embedding, top_k, faiss_ids):
+def find_similar_image(faiss_index, query_embedding, top_k, faiss_ids):
     """
     Finds the most similar embeddings in a FAISS index to a given query embedding.
 
@@ -14,3 +14,15 @@ def find_similar_embeddings(faiss_index, query_embedding, top_k, faiss_ids):
     _, indices = faiss_index.search(query_embedding, top_k)
     similar_ids = [faiss_ids[i] for i in indices[0]]
     return similar_ids
+
+def find_using_text(faiss_index, query_embeddings, top_k, faiss_ids):
+    D, I = faiss_index.search(query_embeddings, top_k)
+    ids = []
+    seen = set()
+    for row in I:
+        for idx in row:
+            pid = faiss_ids[idx]
+            if pid not in seen:
+                ids.append(pid)
+                seen.add(pid)
+    return ids

@@ -1,8 +1,12 @@
+import io
+import os
+
 import numpy as np
 from PIL import Image
-import io
 
-def normalise_image_func(predictor, image_file, clicks_str):
+from src.object_detection import get_best_detections
+
+def crop_marked_image_func(predictor, image_file, clicks_str):
     """
     Normalises an image using a pre-loaded SAM predictor.
 
@@ -64,3 +68,22 @@ def normalise_image_func(predictor, image_file, clicks_str):
     buf.seek(0)
     
     return buf
+
+import io
+
+def get_main_object(image_file, detections, search_category):
+    pil_image = Image.open(image_file).convert("RGB")
+    detection = get_best_detections(detections, search_category)
+
+    if detection is None:
+        raise ValueError(f"No matching detection found for category: {search_category}")
+
+    bbox = detection["bbox"]
+    x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+    cropped_image = pil_image.crop((x1, y1, x2, y2))
+
+    image_bytes = io.BytesIO()
+    cropped_image.save(image_bytes, format='PNG')
+    image_bytes.seek(0)
+
+    return image_bytes
