@@ -1,17 +1,3 @@
-import json
-import faiss
-
-
-def load_FAISS():
-    """Loads the FAISS Index and map.json for similarity search."""
-    try:
-        faiss_index = faiss.read_index("./embeddings.index")
-        with open("./clip_id_map.json", "r") as f:
-            faiss_ids = json.load(f)
-        return faiss_index, faiss_ids
-    except Exception as e:
-        raise RuntimeError("Could not load FAISS store. Error: {e}")
-
 def find_similar_embeddings(faiss_index, query_embedding, top_k, faiss_ids):
     """
     Finds the most similar embeddings in a FAISS index to a given query embedding.

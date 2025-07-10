@@ -1,15 +1,6 @@
-from segment_anything import sam_model_registry, SamPredictor
-import torch
 import numpy as np
 from PIL import Image
 import io
-
-def load_sam_model(model_type="vit_b", checkpoint="./sam_vit_b.pth"):
-    """Loads the SAM model and returns the predictor."""
-    sam = sam_model_registry[model_type](checkpoint=checkpoint)
-    sam.to("cuda" if torch.cuda.is_available() else "cpu")
-    predictor = SamPredictor(sam)
-    return predictor
 
 def normalise_image_func(predictor, image_file, clicks_str):
     """

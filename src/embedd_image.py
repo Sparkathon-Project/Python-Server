@@ -1,17 +1,6 @@
 import torch
 from PIL import Image
-from transformers import CLIPProcessor, CLIPModel
 import numpy as np
-
-def load_clip_model():
-    """Loads the CLIP model and preprocessing transform."""
-    try:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
-        processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32",use_fast=True)
-        return model, processor, device
-    except Exception as e:
-        raise RuntimeError("Could not load CLIP model. Error: {e}")
 
 def embed_image_func(model, preprocess, device, image_buffer):
     """
@@ -40,3 +29,33 @@ def embed_image_func(model, preprocess, device, image_buffer):
         outputs = model.get_image_features(**inputs)
     embedding = outputs.cpu().numpy().flatten()
     return embedding / np.linalg.norm(embedding)
+
+def classify_image_func(model, processor, device, image_embedding, categories):
+    """
+    Classifies image embedding against category text using CLIP.
+
+    Args:
+        model: CLIPModel instance.
+        processor: CLIPProcessor instance.
+        device: 'cpu' or 'cuda'.
+        image_embedding: np.ndarray (normalized image embedding).
+        categories: list of category strings.
+
+    Returns:
+        str: Most likely category label.
+    """
+    # Tokenize and encode text
+    text_inputs = processor(text=categories, return_tensors="pt", padding=True).to(device)
+    with torch.no_grad():
+        text_embeddings = model.get_text_features(**text_inputs)
+    text_embeddings = text_embeddings / text_embeddings.norm(dim=-1, keepdim=True)
+
+    # Normalize and convert image embedding
+    image_tensor = torch.tensor(image_embedding).to(device)
+    image_tensor = image_tensor / image_tensor.norm()
+
+    # Compute cosine similarity
+    logits = image_tensor @ text_embeddings.T
+    probs = logits.softmax(dim=0)
+
+    return categories[torch.argmax(probs).item()]
