@@ -19,7 +19,7 @@ app = Flask(__name__)
 CORS(app)
 
 clip_model, clip_preprocess, clip_device = load_clip_model()
-faiss_index, faiss_ids_images, faiss_ids_text = load_FAISS()
+faiss_index_images, faiss_index_text, faiss_ids_images, faiss_ids_text = load_FAISS()
 sam_model, sam_predictor, mask_generator = load_sam_model()
 yolo_model = load_YOLO_model()
 llm_client = load_llm_model()
@@ -47,11 +47,11 @@ def detect_objects():
         if response["action"] == "show_similar":
             image_bytes = get_main_object(image_file, detections, response["search"][0])
             embedding = embed_image_func(clip_model, clip_preprocess, clip_device, image_bytes)
-            similar_ids = find_similar_image(faiss_index, embedding, 5, faiss_ids_images)
+            similar_ids = find_similar_image(faiss_index_images, embedding, 5, faiss_ids_images)
             return jsonify({"results": similar_ids})
         else:
             embeddings =  embed_text_func(clip_model, clip_preprocess, clip_device, response["search"])
-            results = find_using_text(faiss_index, embeddings, 5, faiss_ids_text)
+            results = find_using_text(faiss_index_text, embeddings, 5, faiss_ids_text)
             return jsonify({"results": results})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -69,7 +69,7 @@ def search():
     try:
         buf = crop_marked_image_func(sam_predictor, image_file, clicks)
         embedding = embed_image_func(clip_model, clip_preprocess, clip_device, buf).astype('float32').reshape(1, -1)
-        similar_ids = find_similar_image(faiss_index, embedding, 5, faiss_ids_images)
+        similar_ids = find_similar_image(faiss_index_images, embedding, 5, faiss_ids_images)
         return jsonify({"results": similar_ids})
 
     except ValueError as e:

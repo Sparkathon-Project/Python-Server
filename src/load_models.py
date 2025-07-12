@@ -20,12 +20,13 @@ def load_sam_model():
 def load_FAISS():
     """Loads the FAISS Index and map.json for similarity search."""
     try:
-        faiss_index = faiss.read_index("./embeddings.index")
+        faiss_index_images = faiss.read_index("./embeddings_images.index")
+        faiss_index_text = faiss.read_index("./embeddings_text.index")
         with open("./clip_images_id_map.json", "r") as f:
             faiss_ids_images = json.load(f)
         with open("./clip_text_id_map.json", "r") as f:
             faiss_ids_text = json.load(f)
-        return faiss_index, faiss_ids_images, faiss_ids_text
+        return faiss_index_images, faiss_index_text, faiss_ids_images, faiss_ids_text
     except Exception as e:
         raise RuntimeError("Could not load FAISS store. Error: {e}")
 
